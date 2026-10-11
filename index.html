@@ -1,1 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全星曜紫微斗数详细排盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f2f2f7;
+            padding: 15px;
+            color: #1c1c1e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { margin-bottom: 12px; font-size: 20px; }
+        
+        .form-container {
+            background: #ffffff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .form-group { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+        input, select, button { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .btn-calc { background: #007aff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-calc:hover { background: #0056b3; }
+        .btn-copy { background: #34c759; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-copy:hover { background: #248a3d; }
+
+        /* 大屏12宫方盘 */
+        .board-container {
+            width: 100%;
+            max-width: 980px;
+            aspect-ratio: 1/1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 4px;
+            background: #8e8e93;
+            border: 2px solid #636366;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .cell {
+            background: #fff;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            overflow: hidden;
+        }
+        .center-cell {
+            grid-column: 2 / 4;
+            grid-row: 2 / 4;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            text-align: center;
+        }
+        .center-info { line-height: 1.8; font-size: 13px; }
+        .center-info h2 { font-size: 18px; color: #007aff; margin-bottom: 8px; }
+
+        .cell-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+            font-size: 11px;
+            color: #8e8e93;
+        }
+        .daxian-tag { color: #ff9500; font-weight: bold; font-size: 11px; }
+
+        .stars-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+            flex-grow: 1;
+        }
+        
+        /* 各种星曜样式分类 */
+        .star-row { display: flex; flex-wrap: wrap; gap: 3px; }
+        .star-main { color: #d70015; font-weight: bold; font-size: 12px; } /* 主星 */
+        .star-good { color: #007aff; font-weight: 500; font-size: 11px; } /* 六吉星 */
+        .star-bad { color: #af52de; font-weight: 500; font-size: 11px; }  /* 六煞星 */
+        .star-other { color: #34c759; font-size: 11px; }                 /* 杂曜 */
+        .star-sihua { color: #fff; background: #ff3b30; padding: 0 2px; border-radius: 2px; font-size: 9px; margin-left: 2px; }
+
+        .cell-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 3px;
+        }
+        .palace-name { font-size: 13px; font-weight: bold; background: #e5e5ea; padding: 1px 5px; border-radius: 3px; }
+        .ganzhi { font-size: 11px; color: #666; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <h1>紫微斗数全星曜详细排盘</h1>
+
+    <div class="form-container">
+        <div class="form-group">
+            <label>公历生日：</label>
+            <input type="date" id="birthDate" value="1984-01-18">
+        </div>
+        <div class="form-group">
+            <label>时辰：</label>
+            <select id="birthTime">
+                <option value="0">子时 (23:00-01:00)</option>
+                <option value="1">丑时 (01:00-03:00)</option>
+                <option value="2">寅时 (03:00-05:00)</option>
+                <option value="3">卯时 (05:00-07:00)</option>
+                <option value="4">辰时 (07:00-09:00)</option>
+                <option value="5">巳时 (09:00-11:00)</option>
+                <option value="6">午时 (11:00-13:00)</option>
+                <option value="7">未时 (13:00-15:00)</option>
+                <option value="8" selected>申时 (15:00-17:00)</option>
+                <option value="9">酉时 (17:00-19:00)</option>
+                <option value="10">戌时 (19:00-21:00)</option>
+                <option value="11">亥时 (21:00-23:00)</option>
+            </select>
+        </div>
+        <button class="btn-calc" onclick="calculateZiwei()">生成排盘</button>
+        <button class="btn-copy" onclick="copyFullBoard()">📋 复制完整纯文本命盘</button>
+    </div>
+
+    <div class="board-container">
+        <div class="cell" id="cell-5"></div>
+        <div class="cell" id="cell-6"></div>
+        <div class="cell" id="cell-7"></div>
+        <div class="cell" id="cell-8"></div>
+        
+        <div class="cell" id="cell-4"></div>
+        <div class="center-cell">
+            <div class="center-info" id="centerInfo">
+                <h2>命盘信息</h2>
+            </div>
+        </div>
+        <div class="cell" id="cell-9"></div>
+
+        <div class="cell" id="cell-3"></div>
+        <div class="cell" id="cell-10"></div>
+
+        <div class="cell" id="cell-2"></div>
+        <div class="cell" id="cell-1"></div>
+        <div class="cell" id="cell-0"></div>
+        <div class="cell" id="cell-11"></div>
+    </div>
+
+    <script>
+        const ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+        const GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+        const PALACES = ["命宫", "兄弟宫", "夫妻宫", "子女宫", "财帛宫", "疾厄宫", "迁移宫", "仆役宫", "官禄宫", "田宅宫", "福德宫", "父母宫"];
+        const JU_NAMES = { 2: "水二局", 3: "木三局", 4: "金四局", 5: "土五局", 6: "火六局" };
+
+        const SIHUA = {
+            "甲": { "廉贞": "禄", "破军": "权", "武曲": "科", "太阳": "忌" },
+            "乙": { "天机": "禄", "天梁": "权", "紫微": "科", "太阴": "忌" },
+            "丙": { "天同": "禄", "天机": "权", "文昌": "科", "廉贞": "忌" },
+            "丁": { "太阴": "禄", "天同": "权", "天机": "科", "巨门": "忌" },
+            "戊": { "贪狼": "禄", "太阴": "权", "右弼": "科", "天机": "忌" },
+            "己": { "武曲": "禄", "贪狼": "权", "天梁": "科", "文曲": "忌" },
+            "庚": { "太阳": "禄", "武曲": "权", "太阴": "科", "天同": "忌" },
+            "辛": { "巨门": "禄", "太阳": "权", "文曲": "科", "文昌": "忌" },
+            "壬": { "天梁": "禄", "紫微": "权", "左辅": "科", "武曲": "忌" },
+            "癸": { "破军": "禄", "巨门": "权", "太阴": "科", "贪狼": "忌" }
+        };
+
+        let currentBoardData = null;
+
+        function getJuNumber(stem, branch) {
+            const map = {
+                "甲子":4,"乙丑":4,"丙寅":2,"丁卯":2,"戊辰":5,"己巳":5,"庚午":3,"辛未":3,"壬申":6,"癸酉":6,
+                "甲戌":4,"乙亥":4,"丙子":2,"丁丑":2,"戊寅":5,"己卯":5,"庚辰":3,"辛巳":3,"壬午":6,"癸未":6,
+                "甲申":2,"乙酉":2,"丙戌":5,"丁亥":5,"戊子":3,"己丑":3,"庚寅":6,"辛卯":6,"壬辰":4,"癸巳":4,
+                "甲午":2,"乙未":2,"丙申":5,"丁酉":5,"戊戌":3,"己亥":3,"庚子":6,"辛丑":6,"壬寅":4,"癸卯":4,
+                "甲辰":3,"乙巳":3,"丙午":6,"丁未":6,"戊申":4,"己酉":4,"庚戌":2,"辛亥":2,"壬子":5,"癸丑":5,
+                "甲寅":3,"乙卯":3,"丙辰":6,"丁巳":6,"戊午":4,"己未":4,"庚申":2,"辛酉":2,"壬戌":5,"癸亥":5
+            };
+            return map[stem + branch] || 5;
+        }
+
+        function getZiweiIndex(ju, day) {
+            let remainder = day % ju;
+            let quotient = Math.floor(day / ju);
+            let offset = 0;
+
+            if (remainder === 0) {
+                offset = quotient;
+            } else {
+                let add = ju - remainder;
+                if (add % 2 === 1) { offset = quotient + 1 - add; } 
+                else { offset = quotient + 1 + add; }
+            }
+            return (2 + (offset - 1) % 12 + 12) % 12;
+        }
+
+        function calculateZiwei() {
+            const dateStr = document.getElementById("birthDate").value;
+            const timeIdx = parseInt(document.getElementById("birthTime").value);
+            const [y, m, d] = dateStr.split("-").map(Number);
+
+            const solar = Solar.fromYmd(y, m, d);
+            const lunar = solar.getLunar();
+
+            const lunarMonth = Math.abs(lunar.getMonth());
+            const lunarDay = lunar.getDay();
+            const yearGan = lunar.getYearGan();
+            const yearZhi = lunar.getYearZhi();
+
+            let mingIdx = (2 + (lunarMonth - 1) - timeIdx + 12) % 12;
+            let shenIdx = (2 + (lunarMonth - 1) + timeIdx) % 12;
+
+            const yearGanIdx = GAN.indexOf(yearGan);
+            const yearZhiIdx = ZHI.indexOf(yearZhi);
+
+            const yinStemIdx = (yearGanIdx % 5) * 2 + 2;
+            let stems = [];
+            for (let i = 0; i < 12; i++) {
+                stems[i] = GAN[(yinStemIdx + (i - 2 + 12)) % 10];
+            }
+
+            const ju = getJuNumber(stems[mingIdx], ZHI[mingIdx]);
+            const ziweiIdx = getZiweiIndex(ju, lunarDay);
+            const tianfuIdx = (4 - ziweiIdx + 12) % 12;
+
+            // 各类星曜初始化
+            let mains = Array.from({ length: 12 }, () => []);
+            let goods = Array.from({ length: 12 }, () => []);
+            let bads = Array.from({ length: 12 }, () => []);
+            let others = Array.from({ length: 12 }, () => []);
+
+            // 1. 布十四主星
+            const ziweiGroup = [
+                { name: "紫微", offset: 0 }, { name: "天机", offset: -1 },
+                { name: "太阳", offset: -3 }, { name: "武曲", offset: -4 },
+                { name: "天同", offset: -5 }, { name: "廉贞", offset: -8 }
+            ];
+            ziweiGroup.forEach(s => mains[(ziweiIdx + s.offset + 24) % 12].push(s.name));
+
+            const tianfuGroup = [
+                { name: "天府", offset: 0 }, { name: "太阴", offset: 1 },
+                { name: "贪狼", offset: 2 }, { name: "巨门", offset: 3 },
+                { name: "天相", offset: 4 }, { name: "天梁", offset: 5 },
+                { name: "七杀", offset: 6 }, { name: "破军", offset: 10 }
+            ];
+            tianfuGroup.forEach(s => mains[(tianfuIdx + s.offset) % 12].push(s.name));
+
+            // 2. 布六吉星 (文昌文曲、左辅右弼、天魁天钺)
+            goods[(10 + timeIdx) % 12].push("文昌");
+            goods[(4 - timeIdx + 12) % 12].push("文曲");
+            goods[(4 + (lunarMonth - 1)) % 12].push("左辅");
+            goods[(10 - (lunarMonth - 1) + 12) % 12].push("右弼");
+            
+            const kuiYueMap = { "甲":[1,7], "乙":[0,8], "丙":[11,9], "丁":[11,9], "戊":[1,7], "己":[0,8], "庚":[1,7], "辛":[6,2], "壬":[3,5], "癸":[3,5] };
+            if (kuiYueMap[yearGan]) {
+                goods[kuiYueMap[yearGan][0]].push("天魁");
+                goods[kuiYueMap[yearGan][1]].push("天钺");
+            }
+
+            // 3. 布六煞星 (火星、铃星、擎羊、陀罗、地空、地劫)
+            bads[(11 - timeIdx + 12) % 12].push("地空");
+            bads[(11 + timeIdx) % 12].push("地劫");
+
+            const luMap = { "甲":2, "乙":3, "丙":5, "丁":6, "戊":5, "己":6, "庚":8, "辛":9, "壬":11, "癸":0 };
+            let luIdx = luMap[yearGan];
+            if (luIdx !== undefined) {
+                bads[(luIdx + 1) % 12].push("擎羊");
+                bads[(luIdx - 1 + 12) % 12].push("陀罗");
+                others[luIdx].push("禄存");
+            }
+
+            // 火星铃星简易推算
+            let huoxingStart = [2, 3, 1, 9][yearZhiIdx % 4];
+            bads[(huoxingStart + timeIdx) % 12].push("火星");
+            bads[(10 + timeIdx) % 12].push("铃星");
+
+            // 4. 杂曜与桃花 (天马、红鸾、天喜、孤辰、寡宿)
+            let tianmaMap = { "申":2, "子":2, "辰":2, "寅":8, "午":8, "戌":8, "亥":5, "卯":5, "未":5, "巳":11, "酉":11, "丑":11 };
+            if (tianmaMap[yearZhi]) others[tianmaMap[yearZhi]].push("天马");
+
+            let hongluanIdx = (3 - yearZhiIdx + 12) % 12;
+            others[hongluanIdx].push("红鸾");
+            others[(hongluanIdx + 6) % 12].push("天喜");
+
+            const yearSihua = SIHUA[yearGan] || {};
+
+            // 渲染中宫
+            document.getElementById("centerInfo").innerHTML = `
+                <h2>命盘摘要</h2>
+                <p><b>公历：</b>${y}年${m}月${d}日</p>
+                <p><b>农历：</b>${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} ${ZHI[timeIdx]}时</p>
+                <p><b>命局：</b>${JU_NAMES[ju]} | <b>生肖：</b>${lunar.getYearShengXiao()}</p>
+                <p><b>命宫：</b>${ZHI[mingIdx]}宫 | <b>身宫：</b>${ZHI[shenIdx]}宫</p>
+            `;
+
+            currentBoardData = {
+                solar: `${y}年${m}月${d}日`,
+                lunar: `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} ${ZHI[timeIdx]}时`,
+                ju: JU_NAMES[ju],
+                ming: ZHI[mingIdx],
+                shen: ZHI[shenIdx],
+                palaces: []
+            };
+
+            // 5. 渲染 12 宫
+            for (let i = 0; i < 12; i++) {
+                const cellEl = document.getElementById(`cell-${i}`);
+                let pNameIdx = (mingIdx - i + 12) % 12;
+                let palaceName = PALACES[pNameIdx];
+                if (i === shenIdx) palaceName += " (身)";
+
+                // 计算十年大运起止年龄
+                let daxianStart = ju + i * 10;
+                let daxianEnd = daxianStart + 9;
+
+                let mStars = mains[i].map(s => {
+                    let sh = yearSihua[s] ? `<span class="star-sihua">化${yearSihua[s]}</span>` : '';
+                    return `<span class="star-main">${s}${sh}</span>`;
+                }).join(' ');
+
+                let gStars = goods[i].map(s => {
+                    let sh = yearSihua[s] ? `<span class="star-sihua">化${yearSihua[s]}</span>` : '';
+                    return `<span class="star-good">${s}${sh}</span>`;
+                }).join(' ');
+
+                let bStars = bads[i].map(s => `<span class="star-bad">${s}</span>`).join(' ');
+                let oStars = others[i].map(s => `<span class="star-other">${s}</span>`).join(' ');
+
+                cellEl.innerHTML = `
+                    <div class="cell-header">
+                        <span>${stems[i]}${ZHI[i]}</span>
+                        <span class="daxian-tag">${daxianStart}-${daxianEnd}岁</span>
+                    </div>
+                    <div class="stars-section">
+                        <div class="star-row">${mStars || '<span style="color:#ccc;">无主星</span>'}</div>
+                        <div class="star-row">${gStars}</div>
+                        <div class="star-row">${bStars}</div>
+                        <div class="star-row">${oStars}</div>
+                    </div>
+                    <div class="cell-footer">
+                        <span class="ganzhi">${stems[i]}</span>
+                        <span class="palace-name">${palaceName}</span>
+                    </div>
+                `;
+
+                currentBoardData.palaces.push({
+                    zhi: ZHI[i],
+                    stem: stems[i],
+                    name: palaceName,
+                    daxian: `${daxianStart}-${daxianEnd}岁`,
+                    mains: mains[i].map(s => s + (yearSihua[s] ? `(化${yearSihua[s]})` : '')),
+                    goods: goods[i].map(s => s + (yearSihua[s] ? `(化${yearSihua[s]})` : '')),
+                    bads: bads[i],
+                    others: others[i]
+                });
+            }
+        }
+
+        // 一键复制纯文本完整命盘
+        function copyFullBoard() {
+            if (!currentBoardData) return alert("请先排盘！");
+
+            let txt = `【紫微斗数全星曜纯文本命盘】\n`;
+            txt += `公历生日：${currentBoardData.solar}\n`;
+            txt += `农历生辰：${currentBoardData.lunar}\n`;
+            txt += `命局：${currentBoardData.ju} | 命宫：${currentBoardData.ming}宫 | 身宫：${currentBoardData.shen}宫\n`;
+            txt += `==================================================\n\n`;
+
+            currentBoardData.palaces.forEach(p => {
+                txt += `【${p.zhi}宫 - ${p.name}】 (${p.stem}${p.zhi})  [大限: ${p.daxian}]\n`;
+                txt += `  主星：${p.mains.join("、") || "无主星"}\n`;
+                txt += `  吉星：${p.goods.join("、") || "无"}\n`;
+                txt += `  煞星：${p.bads.join("、") || "无"}\n`;
+                txt += `  杂曜：${p.others.join("、") || "无"}\n\n`;
+            });
+
+            navigator.clipboard.writeText(txt).then(() => {
+                alert("已成功复制完整纯文本命盘到剪贴板！可以直接发送保存。");
+            });
+        }
+
+        window.onload = calculateZiwei;
+    </script>
+</body>
+</html>
+
 

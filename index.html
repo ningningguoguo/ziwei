@@ -95,12 +95,11 @@
             flex-grow: 1;
         }
         
-        /* 各种星曜样式分类 */
         .star-row { display: flex; flex-wrap: wrap; gap: 3px; }
-        .star-main { color: #d70015; font-weight: bold; font-size: 12px; } /* 主星 */
-        .star-good { color: #007aff; font-weight: 500; font-size: 11px; } /* 六吉星 */
-        .star-bad { color: #af52de; font-weight: 500; font-size: 11px; }  /* 六煞星 */
-        .star-other { color: #34c759; font-size: 11px; }                 /* 杂曜 */
+        .star-main { color: #d70015; font-weight: bold; font-size: 12px; }
+        .star-good { color: #007aff; font-weight: 500; font-size: 11px; }
+        .star-bad { color: #af52de; font-weight: 500; font-size: 11px; }
+        .star-other { color: #34c759; font-size: 11px; }
         .star-sihua { color: #fff; background: #ff3b30; padding: 0 2px; border-radius: 2px; font-size: 9px; margin-left: 2px; }
 
         .cell-footer {
@@ -122,7 +121,8 @@
     <div class="form-container">
         <div class="form-group">
             <label>公历生日：</label>
-            <input type="date" id="birthDate" value="1984-01-18">
+            <!-- 移除了默认的 value，变为空白 -->
+            <input type="date" id="birthDate">
         </div>
         <div class="form-group">
             <label>时辰：</label>
@@ -135,7 +135,7 @@
                 <option value="5">巳时 (09:00-11:00)</option>
                 <option value="6">午时 (11:00-13:00)</option>
                 <option value="7">未时 (13:00-15:00)</option>
-                <option value="8" selected>申时 (15:00-17:00)</option>
+                <option value="8">申时 (15:00-17:00)</option>
                 <option value="9">酉时 (17:00-19:00)</option>
                 <option value="10">戌时 (19:00-21:00)</option>
                 <option value="11">亥时 (21:00-23:00)</option>
@@ -155,6 +155,7 @@
         <div class="center-cell">
             <div class="center-info" id="centerInfo">
                 <h2>命盘信息</h2>
+                <p>请选择出生日期后点击生成</p>
             </div>
         </div>
         <div class="cell" id="cell-9"></div>
@@ -218,6 +219,8 @@
 
         function calculateZiwei() {
             const dateStr = document.getElementById("birthDate").value;
+            if (!dateStr) return alert("请先选择您的公历生日！");
+
             const timeIdx = parseInt(document.getElementById("birthTime").value);
             const [y, m, d] = dateStr.split("-").map(Number);
 
@@ -245,13 +248,11 @@
             const ziweiIdx = getZiweiIndex(ju, lunarDay);
             const tianfuIdx = (4 - ziweiIdx + 12) % 12;
 
-            // 各类星曜初始化
             let mains = Array.from({ length: 12 }, () => []);
             let goods = Array.from({ length: 12 }, () => []);
             let bads = Array.from({ length: 12 }, () => []);
             let others = Array.from({ length: 12 }, () => []);
 
-            // 1. 布十四主星
             const ziweiGroup = [
                 { name: "紫微", offset: 0 }, { name: "天机", offset: -1 },
                 { name: "太阳", offset: -3 }, { name: "武曲", offset: -4 },
@@ -267,7 +268,6 @@
             ];
             tianfuGroup.forEach(s => mains[(tianfuIdx + s.offset) % 12].push(s.name));
 
-            // 2. 布六吉星 (文昌文曲、左辅右弼、天魁天钺)
             goods[(10 + timeIdx) % 12].push("文昌");
             goods[(4 - timeIdx + 12) % 12].push("文曲");
             goods[(4 + (lunarMonth - 1)) % 12].push("左辅");
@@ -279,7 +279,6 @@
                 goods[kuiYueMap[yearGan][1]].push("天钺");
             }
 
-            // 3. 布六煞星 (火星、铃星、擎羊、陀罗、地空、地劫)
             bads[(11 - timeIdx + 12) % 12].push("地空");
             bads[(11 + timeIdx) % 12].push("地劫");
 
@@ -291,12 +290,10 @@
                 others[luIdx].push("禄存");
             }
 
-            // 火星铃星简易推算
             let huoxingStart = [2, 3, 1, 9][yearZhiIdx % 4];
             bads[(huoxingStart + timeIdx) % 12].push("火星");
             bads[(10 + timeIdx) % 12].push("铃星");
 
-            // 4. 杂曜与桃花 (天马、红鸾、天喜、孤辰、寡宿)
             let tianmaMap = { "申":2, "子":2, "辰":2, "寅":8, "午":8, "戌":8, "亥":5, "卯":5, "未":5, "巳":11, "酉":11, "丑":11 };
             if (tianmaMap[yearZhi]) others[tianmaMap[yearZhi]].push("天马");
 
@@ -306,7 +303,6 @@
 
             const yearSihua = SIHUA[yearGan] || {};
 
-            // 渲染中宫
             document.getElementById("centerInfo").innerHTML = `
                 <h2>命盘摘要</h2>
                 <p><b>公历：</b>${y}年${m}月${d}日</p>
@@ -324,14 +320,12 @@
                 palaces: []
             };
 
-            // 5. 渲染 12 宫
             for (let i = 0; i < 12; i++) {
                 const cellEl = document.getElementById(`cell-${i}`);
                 let pNameIdx = (mingIdx - i + 12) % 12;
                 let palaceName = PALACES[pNameIdx];
                 if (i === shenIdx) palaceName += " (身)";
 
-                // 计算十年大运起止年龄
                 let daxianStart = ju + i * 10;
                 let daxianEnd = daxianStart + 9;
 
@@ -378,9 +372,8 @@
             }
         }
 
-        // 一键复制纯文本完整命盘
         function copyFullBoard() {
-            if (!currentBoardData) return alert("请先排盘！");
+            if (!currentBoardData) return alert("请先选择生日并生成排盘！");
 
             let txt = `【紫微斗数全星曜纯文本命盘】\n`;
             txt += `公历生日：${currentBoardData.solar}\n`;
@@ -397,13 +390,9 @@
             });
 
             navigator.clipboard.writeText(txt).then(() => {
-                alert("已成功复制完整纯文本命盘到剪贴板！可以直接发送保存。");
+                alert("已成功复制完整纯文本命盘到剪贴板！");
             });
         }
-
-        window.onload = calculateZiwei;
     </script>
 </body>
 </html>
-
-
